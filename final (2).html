@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tower of Hanoi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Cormorant+Garamond:ital,wght@0,500;1,500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: transparent;
+    --panel-bg: rgba(38, 29, 14, 0.88);
+    --panel-border: #8a6d2f;
+    --highlight: #ffe066;
+    --text: #f5ead0;
+    --dim: #cbb98a;
+    --blue: #4dabf7;
+    --gold: #ffca3a;
+    --accent: #8ecae6;
+    --error: #ff6b6b;
+    --glow: 0 0 12px rgba(255, 202, 58, 0.55);
+  }
+  * { box-sizing: border-box; }
+  html {
+    background:
+      radial-gradient(1.6px 1.6px at 18% 12%, rgba(255,255,255,0.95) 50%, transparent 52%),
+      radial-gradient(1.2px 1.2px at 42% 28%, rgba(255,255,255,0.8) 50%, transparent 52%),
+      radial-gradient(1.8px 1.8px at 66% 9%,  rgba(255,255,255,0.9) 50%, transparent 52%),
+      radial-gradient(1.1px 1.1px at 83% 22%, rgba(200,230,255,0.85) 50%, transparent 52%),
+      radial-gradient(1.4px 1.4px at 7% 34%,  rgba(255,255,255,0.7) 50%, transparent 52%),
+      radial-gradient(1.2px 1.2px at 55% 41%, rgba(255,255,255,0.75) 50%, transparent 52%),
+      radial-gradient(1.5px 1.5px at 92% 44%, rgba(255,255,255,0.8) 50%, transparent 52%),
+      radial-gradient(1.1px 1.1px at 30% 6%,  rgba(200,230,255,0.7) 50%, transparent 52%),
+      radial-gradient(1.3px 1.3px at 74% 33%, rgba(255,255,255,0.7) 50%, transparent 52%),
+      radial-gradient(1px 1px at 12% 48%, rgba(255,255,255,0.45) 50%, transparent 52%),
+      radial-gradient(1px 1px at 25% 21%, rgba(255,255,255,0.4) 50%, transparent 52%),
+      radial-gradient(1px 1px at 38% 52%, rgba(255,255,255,0.35) 50%, transparent 52%),
+      radial-gradient(1px 1px at 49% 15%, rgba(255,255,255,0.45) 50%, transparent 52%),
+      radial-gradient(1px 1px at 61% 55%, rgba(255,255,255,0.35) 50%, transparent 52%),
+      radial-gradient(1px 1px at 71% 47%, rgba(255,255,255,0.4) 50%, transparent 52%),
+      radial-gradient(1px 1px at 87% 57%, rgba(255,255,255,0.4) 50%, transparent 52%),
+      radial-gradient(1px 1px at 95% 15%, rgba(255,255,255,0.35) 50%, transparent 52%),
+      radial-gradient(1px 1px at 4% 58%,  rgba(255,255,255,0.35) 50%, transparent 52%),
+      linear-gradient(180deg, #050810 0%, #0b1020 35%, #1a1626 60%, #241a20 78%, #2b1d16 100%);
+    background-attachment: fixed;
+  }
+  html, body {
+    margin: 0; padding: 0;
+    background: transparent;
+    color: var(--text);
+    font-family: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+    font-size: 17px;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+  body::after {
+    content: "";
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(2px 2px at 22% 16%, rgba(255,255,255,1) 50%, transparent 52%),
+      radial-gradient(2px 2px at 63% 24%, rgba(255,255,255,1) 50%, transparent 52%),
+      radial-gradient(1.8px 1.8px at 80% 10%, rgba(200,230,255,1) 50%, transparent 52%),
+      radial-gradient(1.8px 1.8px at 45% 38%, rgba(255,255,255,0.95) 50%, transparent 52%);
+    background-attachment: fixed;
+    pointer-events: none;
+    z-index: 0;
+    animation: twinkle 3.2s ease-in-out infinite;
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.35; }
+    50%      { opacity: 1; }
+  }
+  body::before {
+    content: "";
+    position: fixed; left: 0; right: 0; bottom: 0; height: 220px;
+    background:
+      radial-gradient(120% 130% at 20% 115%, rgba(120, 84, 40, 0.55) 40%, transparent 70%),
+      radial-gradient(140% 120% at 75% 118%, rgba(150, 106, 50, 0.6) 38%, transparent 72%),
+      radial-gradient(150% 100% at 50% 130%, rgba(186, 138, 74, 0.5) 45%, transparent 75%),
+      linear-gradient(to top, rgba(210, 168, 100, 0.28), transparent 45%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap {
+    position: relative; z-index: 1;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+    padding-top: calc(16px + env(safe-area-inset-top, 0px));
+  }
+
+  .temple-header { text-align: center; padding: 18px 10px 6px; }
+  .temple-header .ornament {
+    color: var(--gold); font-size: 15px; letter-spacing: 12px; opacity: 0.85;
+    margin-bottom: 4px;
+    animation: ornamentGlow 2.6s ease-in-out infinite;
+  }
+  @keyframes ornamentGlow {
+    0%, 100% { opacity: 0.5; text-shadow: none; }
+    50%      { opacity: 1;    text-shadow: 0 0 12px rgba(255, 202, 58, 0.9); }
+  }
+  .temple-header h1 {
+    margin: 0;
+    font-family: "Cinzel", Georgia, serif;
+    font-weight: 900;
+    font-size: clamp(26px, 5.5vw, 42px);
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    background: linear-gradient(100deg, #b8860b 0%, #ffca3a 20%, #fff8dc 38%, #ffca3a 55%, #b8860b 75%, #ffca3a 100%);
+    background-size: 250% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 24px rgba(255, 202, 58, 0.25);
+    animation: shimmer 4s linear infinite;
+  }
+  @keyframes shimmer {
+    0%   { background-position: 250% 0; }
+    100% { background-position: -250% 0; }
+  }
+  .temple-header h1:hover { animation-duration: 1.2s; }
+  .temple-header .rule {
+    width: 180px; height: 1px;
+    margin: 12px auto 0;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    animation: ruleBreathe 3s ease-in-out infinite;
+  }
+  @keyframes ruleBreathe {
+    0%, 100% { box-shadow: 0 0 4px rgba(255, 202, 58, 0.3); }
+    50%      { box-shadow: 0 0 14px rgba(255, 202, 58, 0.8); }
+  }
+  #quoteEl {
+    text-align: center;
+    font-style: italic;
+    color: var(--dim);
+    font-size: 15px;
+    letter-spacing: 1px;
+    min-height: 22px;
+    margin-top: 10px;
+    transition: opacity 0.6s ease;
+  }
+  #quoteEl.fade { opacity: 0; }
+
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+    padding: 10px 14px;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 8px;
+  }
+  #moves {
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--highlight);
+    font-variant-numeric: tabular-nums;
+    transition: transform 0.2s ease;
+  }
+  #moves.pulse { animation: pulseGlow 0.45s ease; }
+  @keyframes pulseGlow {
+    0%   { transform: scale(1);    text-shadow: none; }
+    40%  { transform: scale(1.15); text-shadow: 0 0 16px currentColor; }
+    100% { transform: scale(1);    text-shadow: none; }
+  }
+  .buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+  button {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-weight: bold;
+    font-size: 13px;
+    letter-spacing: 1.5px;
+    color: #241a05;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 6px;
+    padding: 9px 16px;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.2s ease, filter 0.15s ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.25);
+  }
+  button:hover {
+    filter: brightness(1.12);
+    box-shadow: 0 0 14px rgba(255,255,255,0.25), inset 0 1px 0 rgba(255,255,255,0.35);
+    transform: translateY(-1px);
+  }
+  button:active { transform: translateY(1px) scale(0.98); }
+  button:disabled { opacity: 0.45; cursor: default; transform: none; }
+  #pauseBtn { background: linear-gradient(180deg, #8ecae6, #4a90b8); color: #06121a; }
+  #pauseBtn.paused-mode { animation: breathe 1.6s ease-in-out infinite; }
+  @keyframes breathe {
+    0%, 100% { box-shadow: 0 0 6px rgba(255,255,255,0.15); }
+    50%      { box-shadow: 0 0 20px rgba(255,255,255,0.55); }
+  }
+  #stepBtn { background: linear-gradient(180deg, #b197fc, #7048e8); color: #fff; }
+  #manualBtn { background: linear-gradient(180deg, #69db7c, #2f9e44); color: #06130a; }
+  #manualBtn.on { background: linear-gradient(180deg, #ffa94d, #e8590c); color: #1a0d02; animation: breathe 1.6s ease-in-out infinite; }
+  #muteBtn { background: linear-gradient(180deg, #5a5346, #3a352c); color: var(--text); padding: 9px 12px; }
+  #restartBtn { background: linear-gradient(180deg, #ffca3a, #c8911a); }
+
+  .control-strip {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 10px;
+    padding: 10px 14px;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 8px;
+  }
+  .speed-box { display: flex; align-items: center; gap: 8px; }
+  .speed-box label { font-size: 13px; color: var(--dim); letter-spacing: 1px; }
+  #speedSlider { accent-color: var(--gold); width: 130px; cursor: pointer; }
+  #speedLabel { font-size: 13px; color: var(--highlight); min-width: 52px; font-variant-numeric: tabular-nums; }
+  .pills { display: flex; gap: 6px; }
+  .pill {
+    padding: 5px 12px; font-size: 13px; border-radius: 20px;
+    background: #2b2110; color: var(--dim);
+    border: 1px solid var(--panel-border);
+    box-shadow: none;
+  }
+  .pill:hover { color: var(--text); }
+  .pill.active { background: linear-gradient(180deg, #ffca3a, #c8911a); color: #241a05; box-shadow: 0 0 10px rgba(255,202,58,0.4); }
+  .progress-wrap { flex: 1 1 180px; min-width: 160px; }
+  .progress {
+    height: 8px; border-radius: 4px;
+    background: rgba(0,0,0,0.45);
+    border: 1px solid var(--panel-border);
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, #b8860b, #ffe066);
+    box-shadow: 0 0 8px rgba(255,202,58,0.6);
+    transition: width 0.3s ease;
+  }
+  #progressText { font-size: 12px; color: var(--dim); text-align: right; margin-top: 3px; font-variant-numeric: tabular-nums; }
+
+  #moveText {
+    text-align: center;
+    font-weight: bold;
+    font-size: 16px;
+    min-height: 22px;
+    margin-top: 10px;
+    color: var(--accent);
+    letter-spacing: 0.5px;
+    transition: opacity 0.2s ease;
+  }
+  #moveText.flash { animation: flashIn 0.35s ease; }
+  @keyframes flashIn {
+    0%   { opacity: 0; transform: translateY(-4px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  #completeText {
+    text-align: center;
+    font-weight: bold;
+    font-size: 20px;
+    min-height: 26px;
+    color: var(--highlight);
+    text-shadow: 0 0 14px rgba(255, 224, 102, 0.4);
+  }
+  #completeText.done { animation: grandFinish 1.1s ease; }
+  @keyframes grandFinish {
+    0%   { transform: scale(0.6); opacity: 0; }
+    55%  { transform: scale(1.18); opacity: 1; }
+    100% { transform: scale(1); }
+  }
+
+  .stage-outer {
+    position: relative;
+    width: 100%;
+    max-width: 1000px;
+    height: 340px;         /* fallback before JS runs; JS controls this dynamically */
+    min-height: 0;
+    overflow: hidden;
+    box-sizing: border-box;
+    margin-top: 10px;
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    background:
+      radial-gradient(ellipse 90% 70% at 50% 100%, rgba(255, 190, 60, 0.08), transparent 65%),
+      linear-gradient(180deg, rgba(10, 14, 30, 0.6), rgba(16, 12, 8, 0.6));
+    box-shadow: inset 0 0 60px rgba(0,0,0,0.5);
+  }
+  .stage {
+    position: absolute;
+    top: 0; left: 0;
+    width: 1000px;
+    max-width: none;
+    height: 340px;
+    transform-origin: top left;
+  }
+  .rod-base {
+    position: absolute;
+    bottom: 30px;
+    width: 170px;
+    height: 5px;
+    background: linear-gradient(180deg, #ffe9a8, #c8911a);
+    border-radius: 2px;
+    box-shadow: 0 0 8px rgba(255,202,58,0.5);
+    transform: translateX(-50%);
+  }
+  .rod-line {
+    position: absolute;
+    bottom: 33px;
+    width: 4px;            /* even width — keeps the -50% center on a whole pixel at any scale */
+    height: 257px;
+    background: linear-gradient(90deg, #ffffff, #8ecae6 45%, #4a90b8);
+    border-radius: 2px;
+    box-shadow: 0 0 10px rgba(142,202,230,0.6);
+    transform: translateX(-50%);
+  }
+  .rod-line::before {
+    content: "";
+    position: absolute;
+    top: -8px; left: 50%;
+    width: 10px; height: 10px;
+    transform: translateX(-50%) rotate(45deg);
+    background: linear-gradient(135deg, #ffffff, #8ecae6);
+    box-shadow: 0 0 12px rgba(200,240,255,0.9);
+  }
+  .rod-label {
+    position: absolute;
+    bottom: 4px;
+    font-weight: bold;
+    font-size: 15px;
+    color: var(--highlight);
+    text-shadow: 0 0 8px rgba(255,202,58,0.4);
+    transform: translateX(-50%);
+  }
+  .rod-glow {
+    position: absolute;
+    bottom: 33px;
+    width: 22px;
+    height: 257px;
+    transform: translateX(-50%);
+    border-radius: 10px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, box-shadow 0.2s ease;
+  }
+  .rod-glow.lit { opacity: 1; background: rgba(255, 202, 58, 0.18); box-shadow: 0 0 22px rgba(255,202,58,0.55); }
+  .rod-glow.bad  { opacity: 1; background: rgba(255, 107, 107, 0.15); box-shadow: 0 0 22px rgba(255,107,107,0.55); }
+  .rod-glow.shake { animation: rodShake 0.4s ease; }
+  @keyframes rodShake {
+    0%, 100% { margin-left: 0; }
+    25%      { margin-left: -6px; }
+    75%      { margin-left: 6px; }
+  }
+  .rod-hit {
+    position: absolute;
+    bottom: 30px;
+    width: 220px;
+    height: 270px;
+    transform: translateX(-50%);
+    pointer-events: none;
+    cursor: pointer;
+    z-index: 10;
+  }
+  .stage.manual .rod-hit { pointer-events: auto; }
+  .stage.manual .rod-hit:hover + .rod-glow { opacity: 0.6; background: rgba(142,202,230,0.15); box-shadow: 0 0 18px rgba(142,202,230,0.4); }
+
+  .disk {
+    position: absolute;
+    height: 30px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 12px;
+    color: #1a1205;
+    font-family: Arial, sans-serif;
+    transform: translate(-50%, -50%);
+    top: -100px;
+    transition: top 0.28s ease, left 0.28s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.45), inset 0 -3px 5px rgba(0,0,0,0.25);
+    z-index: 7;
+    pointer-events: none;
+  }
+  .disk::after {
+    content: "";
+    position: absolute;
+    left: 8%; right: 8%; top: 4px;
+    height: 8px;
+    border-radius: 6px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.5), rgba(255,255,255,0));
+    pointer-events: none;
+  }
+  .disk.landed { animation: landGlow 0.5s ease; }
+  @keyframes landGlow {
+    0%   { box-shadow: 0 0 26px rgba(255,255,255,0.9); }
+    100% { box-shadow: 0 2px 4px rgba(0,0,0,0.45); }
+  }
+  .disk.lifted { box-shadow: 0 8px 18px rgba(0,0,0,0.55), 0 0 20px rgba(255,224,102,0.5); }
+
+  .trail {
+    position: absolute;
+    height: 4px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, transparent, rgba(255,224,102,0.75), transparent);
+    pointer-events: none;
+    z-index: 5;
+    animation: trailFade 0.55s ease forwards;
+  }
+  @keyframes trailFade { from { opacity: 1; } to { opacity: 0; } }
+  .puff {
+    position: absolute;
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: rgba(216, 180, 120, 0.9);
+    pointer-events: none;
+    z-index: 5;
+    animation: puffFly 0.6s ease-out forwards;
+  }
+  @keyframes puffFly {
+    to { transform: translate(var(--dx), var(--dy)); opacity: 0; }
+  }
+  .shooting-star {
+    position: absolute;
+    width: 90px; height: 2px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.9), transparent);
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 5;
+    transform: rotate(35deg);
+    animation: shoot 1.1s linear forwards;
+  }
+  @keyframes shoot {
+    from { opacity: 1; transform: rotate(35deg) translate(0, 0); }
+    to   { opacity: 0; transform: rotate(35deg) translate(-320px, 180px); }
+  }
+
+  .panels {
+    display: flex;
+    gap: 16px;
+    margin-top: 18px;
+  }
+  .panel {
+    flex: 1;
+    min-width: 0;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 8px;
+    padding: 14px 18px 18px;
+    box-shadow: inset 0 0 30px rgba(0,0,0,0.35);
+    font-family: Arial, Helvetica, sans-serif;
+  }
+  .panel h3 {
+    margin: 0 0 10px;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--highlight);
+    border-bottom: 1px solid var(--panel-border);
+    padding-bottom: 8px;
+  }
+  .code-line {
+    font-family: "Courier New", Consolas, monospace;
+    font-size: 13px;
+    line-height: 22px;
+    color: var(--dim);
+    padding: 2px 8px;
+    border-radius: 4px;
+    border-left: 3px solid transparent;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  }
+  .code-line.active {
+    background: rgba(255, 224, 102, 0.16);
+    border-left-color: var(--gold);
+    color: var(--highlight);
+    box-shadow: 0 0 12px rgba(255,202,58,0.15);
+  }
+  .info-line {
+    font-family: "Courier New", Consolas, monospace;
+    font-size: 13px;
+    line-height: 22px;
+    min-height: 22px;
+    overflow-wrap: break-word;
+  }
+  #callLine { color: var(--accent); }
+  #stepLine { color: var(--highlight); }
+  .info-line.error { color: var(--error); }
+
+  .stack-viz {
+    display: flex;
+    gap: 4px;
+    margin-top: 12px;
+    min-height: 34px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+  }
+  .stack-frame {
+    padding: 5px 8px;
+    border-radius: 4px;
+    font-family: "Courier New", monospace;
+    font-size: 12px;
+    color: #241a05;
+    background: linear-gradient(180deg, #ffe066, #c8911a);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    animation: frameIn 0.25s ease;
+  }
+  @keyframes frameIn {
+    from { transform: translateY(8px); opacity: 0; }
+    to   { transform: translateY(0); opacity: 1; }
+  }
+
+  @media (max-width: 640px) {
+    .panels { flex-direction: column; }
+    .code-line, .info-line { font-size: 11.5px; line-height: 18px; }
+    #speedSlider { width: 90px; }
+  }
+
+  #modalBackdrop {
+    position: fixed; inset: 0;
+    background: rgba(5, 3, 0, 0.75);
+    backdrop-filter: blur(3px);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 10;
+  }
+  #modalBackdrop.open { display: flex; }
+  #modal {
+    background: linear-gradient(180deg, #2b2110, #1a1409);
+    border: 1px solid #b8860b;
+    border-radius: 10px;
+    padding: 22px 26px 18px;
+    width: 290px;
+    text-align: center;
+    box-shadow: 0 0 40px rgba(255,202,58,0.25);
+  }
+  #modal p { margin: 0 0 10px; font-weight: bold; font-size: 15px; color: var(--highlight); }
+  #modal input {
+    width: 100%;
+    text-align: center;
+    font-size: 16px;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid var(--panel-border);
+    background: #100c05;
+    color: var(--highlight);
+    font-family: Georgia, serif;
+  }
+  #modal input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 10px rgba(255,202,58,0.35); }
+  #modalError { color: var(--error); font-size: 12px; min-height: 16px; margin-top: 6px; }
+  #modal .modal-buttons { display: flex; justify-content: center; gap: 10px; margin-top: 12px; }
+  #modal .modal-buttons button { padding: 7px 18px; }
+  #modalOk { background: linear-gradient(180deg, #ffca3a, #c8911a); }
+  #modalCancel { background: linear-gradient(180deg, #5a5346, #3a352c); color: var(--text); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="temple-header">
+    <div class="ornament">✦ ❖ ✦</div>
+    <h1>Tower of Hanoi</h1>
+    <div class="rule"></div>
+  </div>
+  <div id="quoteEl">In the great temple at Benares, priests move golden disks among three diamond needles…</div>
+
+  <div class="topbar">
+    <div id="moves">Moves: 0</div>
+    <div class="buttons">
+      <button id="pauseBtn">PAUSE</button>
+      <button id="stepBtn">STEP</button>
+      <button id="manualBtn">MANUAL</button>
+      <button id="muteBtn">🔊</button>
+      <button id="restartBtn">RESTART</button>
+    </div>
+  </div>
+
+  <div class="control-strip">
+    <div class="speed-box">
+      <label for="speedSlider">Speed</label>
+      <input type="range" id="speedSlider" min="100" max="1000" step="50" value="500">
+      <span id="speedLabel">500ms</span>
+    </div>
+    <div class="pills" id="pillRow">
+      <button class="pill" data-n="3">3</button>
+      <button class="pill active" data-n="4">4</button>
+      <button class="pill" data-n="5">5</button>
+      <button class="pill" data-n="6">6</button>
+      <button class="pill" data-n="7">7</button>
+      <button class="pill" data-n="8">8</button>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress"><div class="progress-fill" id="progressFill"></div></div>
+      <div id="progressText">0 / 15</div>
+    </div>
+  </div>
+
+  <div id="moveText"></div>
+  <div id="completeText"></div>
+
+  <div class="stage-outer" id="stageOuter">
+    <div class="stage" id="stage"></div>
+  </div>
+
+  <div class="panels">
+    <div class="panel">
+      <h3>Recursive Logic</h3>
+      <div id="codeLines"></div>
+    </div>
+    <div class="panel">
+      <h3>Current Call</h3>
+      <div class="info-line" id="callLine">Ready</div>
+      <div class="info-line" id="depthLine"></div>
+      <div class="info-line" id="stepLine"></div>
+      <div class="stack-viz" id="stackViz"></div>
+    </div>
+  </div>
+</div>
+
+<div id="modalBackdrop">
+  <div id="modal">
+    <p>Enter number of disks (3–8):</p>
+    <input id="diskInput" type="number" min="3" max="8" value="4">
+    <div id="modalError"></div>
+    <div class="modal-buttons">
+      <button id="modalOk">OK</button>
+      <button id="modalCancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+const CODE_LINES = [
+  "def hanoi(n, source, target, auxiliary):",
+  "    if n == 0:",
+  "        return",
+  "    hanoi(n - 1, source, auxiliary, target)",
+  "    move_disk(n, source, target)",
+  "    hanoi(n - 1, auxiliary, target, source)",
+];
+
+const RODS = { A: 170, B: 500, C: 830 };
+const GROUND_Y = 307;
+const PEAK_Y = 40;
+const DISK_STACK_GAP = 30;
+const COLORS = ["#ff595e", "#ffca3a", "#8ac926", "#1982c4", "#6a4c93", "#00b4d8", "#f72585", "#9d4edd"];
+const MOVE_ANIM_MS = 280;
+const PAUSE_BETWEEN_MOVES = 100;
+let CODE_STEP_MS = 500;
+
+let numDisks = 4;
+let rodsState = { A: [], B: [], C: [] };
+let pendingSteps = [];
+let isRunning = false;
+let isPaused = false;
+let puzzleComplete = false;
+let moveCount = 0;
+let runId = 0;
+let diskEls = {};
+let anim = null;
+let stepOnce = false;
+let manualMode = false;
+let selectedRod = null;
+let rodGlowEls = {};
+let rodHitEls = {};
+
+const stage = document.getElementById("stage");
+const stageOuter = document.getElementById("stageOuter");
+const movesEl = document.getElementById("moves");
+const moveTextEl = document.getElementById("moveText");
+const completeTextEl = document.getElementById("completeText");
+const codeLinesEl = document.getElementById("codeLines");
+const callLineEl = document.getElementById("callLine");
+const depthLineEl = document.getElementById("depthLine");
+const stepLineEl = document.getElementById("stepLine");
+const stackVizEl = document.getElementById("stackViz");
+const pauseBtn = document.getElementById("pauseBtn");
+const restartBtn = document.getElementById("restartBtn");
+const stepBtn = document.getElementById("stepBtn");
+const manualBtn = document.getElementById("manualBtn");
+const muteBtn = document.getElementById("muteBtn");
+
+let audioCtx = null;
+let muted = false;
+
+function ensureAudio() {
+  try {
+    if (!audioCtx) {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (AudioContextClass) audioCtx = new AudioContextClass();
+    }
+    if (audioCtx && audioCtx.state === "suspended") {
+      audioCtx.resume();
+    }
+  } catch (e) {
+    audioCtx = null;
+  }
+}
+document.addEventListener("pointerdown", ensureAudio);
+
+function tone(freq, dur, type = "sine", vol = 0.15, when = 0) {
+  if (muted || !audioCtx) return;
+  try {
+    const t = audioCtx.currentTime + when;
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(freq, t);
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(t); o.stop(t + dur);
+  } catch (e) {}
+}
+
+const sfx = {
+  pickup: () => { ensureAudio(); tone(520, 0.07, "triangle", 0.12); },
+  land:   () => { ensureAudio(); tone(160, 0.1, "sine", 0.2); tone(90, 0.08, "sine", 0.12); },
+  error:  () => { ensureAudio(); tone(110, 0.18, "sawtooth", 0.12); },
+  select: () => { ensureAudio(); tone(700, 0.05, "triangle", 0.1); },
+  win:    () => { ensureAudio(); [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.2, "triangle", 0.14, i * 0.13)); },
+};
+
+muteBtn.addEventListener("click", () => {
+  muted = !muted;
+  muteBtn.textContent = muted ? "🔇" : "🔊";
+});
+
+const QUOTES = [
+  "In the great temple at Benares, priests move golden disks among three diamond needles…",
+  "One move per second, 64 disks would take over 585 billion years.",
+  "2ⁿ − 1 moves. The perfect path is known — walking it is the puzzle.",
+  "The priests may not place a larger disk upon a smaller one. So says the prophecy.",
+  "Recursion: to move the tower, first move the tower above it.",
+  "When the last disk is placed, the temple crumbles and the world ends… in a thunderclap.",
+  "Patience, young monk. The base case will come.",
+];
+let quoteIdx = 0;
+setInterval(() => {
+  const el = document.getElementById("quoteEl");
+  if (!el) return;
+  el.classList.add("fade");
+  setTimeout(() => {
+    quoteIdx = (quoteIdx + 1) % QUOTES.length;
+    el.textContent = QUOTES[quoteIdx];
+    el.classList.remove("fade");
+  }, 600);
+}, 6000);
+
+function scheduleShootingStar() {
+  const delay = 5000 + Math.random() * 9000;
+  setTimeout(() => {
+    const star = document.createElement("div");
+    star.className = "shooting-star";
+    star.style.left = (30 + Math.random() * 65) + "%";
+    star.style.top = (4 + Math.random() * 30) + "%";
+    stageOuter.appendChild(star);
+    setTimeout(() => star.remove(), 1300);
+    scheduleShootingStar();
+  }, delay);
+}
+scheduleShootingStar();
+
+function buildStaticStage() {
+  stage.innerHTML = "";
+  rodGlowEls = {}; rodHitEls = {};
+  for (const name of ["A", "B", "C"]) {
+    const x = RODS[name];
+
+    const hit = document.createElement("div");
+    hit.className = "rod-hit";
+    hit.style.left = x + "px";
+    hit.dataset.rod = name;
+    hit.addEventListener("click", () => onRodClick(name));
+    stage.appendChild(hit);
+    rodHitEls[name] = hit;
+
+    const glow = document.createElement("div");
+    glow.className = "rod-glow";
+    glow.style.left = x + "px";
+    stage.appendChild(glow);
+    rodGlowEls[name] = glow;
+
+    const base = document.createElement("div");
+    base.className = "rod-base";
+    base.style.left = x + "px";
+    stage.appendChild(base);
+
+    const line = document.createElement("div");
+    line.className = "rod-line";
+    line.style.left = x + "px";
+    stage.appendChild(line);
+
+    const label = document.createElement("div");
+    label.className = "rod-label";
+    label.style.left = x + "px";
+    label.textContent = name;
+    stage.appendChild(label);
+  }
+}
+
+function buildCodePanel() {
+  codeLinesEl.innerHTML = "";
+  CODE_LINES.forEach((line, i) => {
+    const div = document.createElement("div");
+    div.className = "code-line";
+    div.id = "code-line-" + i;
+    div.textContent = line;
+    codeLinesEl.appendChild(div);
+  });
+}
+
+function resetCodePanel() {
+  document.querySelectorAll(".code-line").forEach(el => el.classList.remove("active"));
+  callLineEl.textContent = "Ready";
+  callLineEl.className = "info-line";
+  depthLineEl.textContent = "";
+  stepLineEl.textContent = "";
+  stackVizEl.innerHTML = "";
+}
+
+function renderStackViz(depth, currentN) {
+  stackVizEl.innerHTML = "";
+  for (let d = 0; d <= depth; d++) {
+    const frame = document.createElement("div");
+    frame.className = "stack-frame";
+    frame.textContent = "n=" + (numDisks - d);
+    stackVizEl.appendChild(frame);
+  }
+}
+
+function showStep(line, n, source, target, aux, depth, text) {
+  document.querySelectorAll(".code-line").forEach((el, i) => {
+    el.classList.toggle("active", i === line);
+  });
+  callLineEl.textContent = `hanoi(n=${n}, source=${source}, target=${target}, aux=${aux})`;
+  depthLineEl.textContent = `Recursion depth: ${depth}`;
+  stepLineEl.textContent = text;
+  renderStackViz(depth, n);
+}
+
+function showFinishedPanel() {
+  document.querySelectorAll(".code-line").forEach(el => el.classList.remove("active"));
+  callLineEl.textContent = "hanoi() finished";
+  depthLineEl.textContent = "";
+  stepLineEl.textContent = `Solved in ${moveCount} moves`;
+  stackVizEl.innerHTML = "";
+}
+
+function diskY(stackIndex) {
+  return GROUND_Y - 15 - stackIndex * DISK_STACK_GAP;
+}
+
+function shade(hex, percent) {
+  const num = parseInt(hex.slice(1), 16);
+  const amt = Math.round(2.55 * percent);
+  const r = Math.min(255, Math.max(0, (num >> 16) + amt));
+  const g = Math.min(255, Math.max(0, ((num >> 8) & 0xff) + amt));
+  const b = Math.min(255, Math.max(0, (num & 0xff) + amt));
+  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+}
+
+function buildDisks() {
+  Object.values(diskEls).forEach(el => el.remove());
+  diskEls = {};
+  rodsState = { A: [], B: [], C: [] };
+
+  for (let i = numDisks; i >= 1; i--) {
+    const width = 40 + i * 16;
+    const el = document.createElement("div");
+    el.className = "disk";
+    el.style.width = width + "px";
+    el.style.background = `linear-gradient(180deg, ${COLORS[(i - 1) % COLORS.length]}, ${shade(COLORS[(i - 1) % COLORS.length], -35)})`;
+    el.textContent = i;
+    el.style.left = RODS.A + "px";
+    el.style.top = diskY(rodsState.A.length) + "px";
+    stage.appendChild(el);
+    diskEls[i] = el;
+    rodsState.A.push(i);
+  }
+}
+
+function updateMoves() {
+  movesEl.textContent = `Moves: ${moveCount}`;
+  movesEl.classList.remove("pulse");
+  void movesEl.offsetWidth;
+  movesEl.classList.add("pulse");
+  const minMoves = Math.pow(2, numDisks) - 1;
+  document.getElementById("progressFill").style.width = Math.min(100, (moveCount / minMoves) * 100) + "%";
+  document.getElementById("progressText").textContent = `${moveCount} / ${minMoves}`;
+}
+
+function updateMoveText(diskNumber, from, to) {
+  moveTextEl.textContent = `Disk ${diskNumber}: Rod ${from} → Rod ${to}`;
+  moveTextEl.classList.remove("flash");
+  void moveTextEl.offsetWidth;
+  moveTextEl.classList.add("flash");
+}
+
+function showCompleteMessage() {
+  completeTextEl.textContent = `PUZZLE COMPLETE!  ${moveCount} moves`;
+  completeTextEl.classList.remove("done");
+  void completeTextEl.offsetWidth;
+  completeTextEl.classList.add("done");
+}
+
+function spawnTrail(x1, x2) {
+  const t = document.createElement("div");
+  t.className = "trail";
+  t.style.top = (PEAK_Y + 13) + "px";
+  t.style.left = Math.min(x1, x2) + "px";
+  t.style.width = Math.abs(x2 - x1) + "px";
+  stage.appendChild(t);
+  setTimeout(() => t.remove(), 600);
+}
+
+function spawnPuff(x, y) {
+  for (let i = 0; i < 5; i++) {
+    const p = document.createElement("div");
+    p.className = "puff";
+    p.style.left = (x - 2) + "px";
+    p.style.top = (y - 2) + "px";
+    p.style.setProperty("--dx", (Math.random() * 70 - 35) + "px");
+    p.style.setProperty("--dy", (-15 - Math.random() * 35) + "px");
+    stage.appendChild(p);
+    setTimeout(() => p.remove(), 650);
+  }
+}
+
+function planMoves(n, source, target, auxiliary, depth = 0) {
+  const add = (kind, line, text) =>
+    pendingSteps.push({ kind, line, n, source, target, auxiliary, depth, text });
+
+  add("trace", 0, `Enter hanoi(${n}, ${source}, ${target}, ${auxiliary})`);
+  if (n === 0) {
+    add("trace", 1, "n == 0 is True");
+    add("trace", 2, "Base case -> return");
+    return;
+  }
+  add("trace", 1, `n == ${n}, not 0 -> keep going`);
+  add("trace", 3, `Recurse -> hanoi(${n - 1}, ${source}, ${auxiliary}, ${target})`);
+  planMoves(n - 1, source, auxiliary, target, depth + 1);
+  add("move", 4, `Move disk ${n}: ${source} -> ${target}`);
+  add("trace", 5, `Recurse -> hanoi(${n - 1}, ${auxiliary}, ${target}, ${source})`);
+  planMoves(n - 1, auxiliary, target, source, depth + 1);
+}
+
+function wait(ms) {
+  return new Promise(resolve => { anim = { timer: setTimeout(resolve, ms) }; });
+}
+
+function animateDiskMove(disk, from, to) {
+  return new Promise(resolve => {
+    const el = diskEls[disk];
+    const fromX = RODS[from];
+    const targetX = RODS[to];
+    const targetY = diskY(rodsState[to].length);
+
+    let phase = 0;
+    el.style.transitionDuration = MOVE_ANIM_MS + "ms";
+    el.classList.add("lifted");
+
+    const next = () => {
+      if (phase === 0) {
+        el.style.top = PEAK_Y + "px";
+      } else if (phase === 1) {
+        el.style.left = targetX + "px";
+        spawnTrail(fromX, targetX);
+      } else if (phase === 2) {
+        el.style.top = targetY + "px";
+      }
+    };
+
+    const onEnd = () => {
+      phase++;
+      if (phase > 2) {
+        el.removeEventListener("transitionend", onEnd);
+        el.classList.remove("lifted");
+        el.classList.add("landed");
+        setTimeout(() => el.classList.remove("landed"), 520);
+        spawnPuff(targetX, GROUND_Y - 4);
+        anim = null;
+        resolve();
+        return;
+      }
+      if (isPaused) {
+        anim = { resumeFn: next };
+      } else {
+        next();
+      }
+    };
+
+    el.addEventListener("transitionend", onEnd);
+    anim = { resumeFn: null };
+    next();
+  });
+}
+
+async function runSteps(myRun) {
+  while (myRun === runId) {
+    if (!isRunning || puzzleComplete) return;
+
+    if (isPaused && !stepOnce) {
+      await new Promise(r => setTimeout(r, 60));
+      continue;
+    }
+    stepOnce = false;
+
+    if (pendingSteps.length === 0) {
+      finishPuzzle();
+      return;
+    }
+
+    const step = pendingSteps.shift();
+    showStep(step.line, step.n, step.source, step.target, step.auxiliary, step.depth, step.text);
+
+    if (step.kind === "trace") {
+      await wait(CODE_STEP_MS);
+      continue;
+    }
+
+    const from = step.source, to = step.target;
+    if (rodsState[from].length === 0) { finishPuzzle(); return; }
+
+    const disk = rodsState[from].pop();
+    updateMoveText(disk, from, to);
+    sfx.pickup();
+
+    await animateDiskMove(disk, from, to);
+    if (myRun !== runId) return;
+
+    rodsState[to].push(disk);
+    moveCount++;
+    updateMoves();
+    sfx.land();
+
+    await wait(PAUSE_BETWEEN_MOVES);
+  }
+}
+
+function finishPuzzle() {
+  isRunning = false;
+  puzzleComplete = true;
+  moveTextEl.textContent = "";
+  showCompleteMessage();
+  showFinishedPanel();
+  sfx.win();
+}
+
+function setManualUI(on) {
+  manualMode = on;
+  manualBtn.textContent = on ? "AUTO" : "MANUAL";
+  manualBtn.classList.toggle("on", on);
+  stage.classList.toggle("manual", on);
+  stepBtn.disabled = on;
+  pauseBtn.disabled = on;
+
+  if (on) {
+    isRunning = false;
+    runId++;
+    pendingSteps = [];
+    anim = null;
+    isPaused = false;
+    stepOnce = false;
+    selectedRod = null;
+
+    pauseBtn.textContent = "PAUSE";
+    pauseBtn.classList.remove("paused-mode");
+
+    Object.values(diskEls).forEach(el => {
+      el.classList.remove("lifted");
+    });
+
+    clearRodHighlights();
+
+    moveTextEl.textContent = "Manual mode — click a needle to lift its top disk";
+  }
+}
+
+function startPuzzle() {
+  runId++;
+  const myRun = runId;
+  isRunning = true;
+  isPaused = false;
+  stepOnce = false;
+  puzzleComplete = false;
+  moveCount = 0;
+  pendingSteps = [];
+  selectedRod = null;
+  clearRodHighlights();
+  moveTextEl.textContent = "";
+  completeTextEl.textContent = "";
+  completeTextEl.classList.remove("done");
+  pauseBtn.textContent = "PAUSE";
+  pauseBtn.classList.remove("paused-mode");
+  pauseBtn.disabled = false;
+  stepBtn.disabled = false;
+  updateMoves();
+  resetCodePanel();
+  buildDisks();
+  planMoves(numDisks, "A", "C", "B");
+  updatePills();
+  setTimeout(() => runSteps(myRun), 300);
+}
+
+function updatePills() {
+  document.querySelectorAll(".pill").forEach(p => {
+    p.classList.toggle("active", parseInt(p.dataset.n, 10) === numDisks);
+  });
+}
+
+function clearRodHighlights() {
+  Object.values(rodGlowEls).forEach(g => g.classList.remove("lit", "bad", "shake"));
+}
+
+function canPlace(disk, rod) {
+  return rodsState[rod].length === 0 || rodsState[rod][rodsState[rod].length - 1] > disk;
+}
+
+function refreshTargets() {
+  clearRodHighlights();
+  if (!selectedRod) return;
+  const disk = rodsState[selectedRod][rodsState[selectedRod].length - 1];
+  for (const name of ["A", "B", "C"]) {
+    if (name === selectedRod) continue;
+    rodGlowEls[name].classList.add(canPlace(disk, name) ? "lit" : "bad");
+  }
+}
+
+async function onRodClick(rod) {
+  if (!manualMode || puzzleComplete) return;
+  
+  if (selectedRod === null) {
+    if (rodsState[rod].length === 0) {
+      rodGlowEls[rod].classList.add("shake");
+      setTimeout(() => rodGlowEls[rod].classList.remove("shake"), 420);
+      sfx.error();
+      return;
+    }
+    selectedRod = rod;
+    const disk = rodsState[rod][rodsState[rod].length - 1];
+    diskEls[disk].classList.add("lifted");
+    sfx.select();
+    refreshTargets();
+    return;
+  }
+  if (rod === selectedRod) {
+    const disk = rodsState[rod][rodsState[rod].length - 1];
+    diskEls[disk].classList.remove("lifted");
+    selectedRod = null;
+    clearRodHighlights();
+    return;
+  }
+  const disk = rodsState[selectedRod][rodsState[selectedRod].length - 1];
+  if (!canPlace(disk, rod)) {
+    rodGlowEls[rod].classList.add("shake");
+    setTimeout(() => rodGlowEls[rod].classList.remove("shake"), 420);
+    sfx.error();
+    return;
+  }
+  const from = selectedRod;
+  selectedRod = null;
+  clearRodHighlights();
+  diskEls[disk].classList.remove("lifted");
+  rodsState[from].pop();
+  updateMoveText(disk, from, rod);
+  sfx.pickup();
+  await animateDiskMove(disk, from, rod);
+  rodsState[rod].push(disk);
+  moveCount++;
+  updateMoves();
+  sfx.land();
+  if (rod === "C" && rodsState.C.length === numDisks) {
+    finishPuzzle();
+  }
+}
+
+pauseBtn.addEventListener("click", () => {
+  if (puzzleComplete || manualMode || !isRunning) return;
+  isPaused = !isPaused;
+  pauseBtn.textContent = isPaused ? "RESUME" : "PAUSE";
+  pauseBtn.classList.toggle("paused-mode", isPaused);
+  if (!isPaused && anim && anim.resumeFn) {
+    const fn = anim.resumeFn;
+    anim.resumeFn = null;
+    fn();
+  }
+});
+
+stepBtn.addEventListener("click", () => {
+  if (puzzleComplete || manualMode || !isRunning) return;
+  if (!isPaused) {
+    isPaused = true;
+    pauseBtn.textContent = "RESUME";
+    pauseBtn.classList.add("paused-mode");
+  }
+  stepOnce = true;
+});
+
+manualBtn.addEventListener("click", () => {
+  if (!manualMode) {
+    setManualUI(true);
+  } else {
+    setManualUI(false);
+    startPuzzle();
+  }
+});
+
+document.getElementById("speedSlider").addEventListener("input", (e) => {
+  CODE_STEP_MS = parseInt(e.target.value, 10);
+  document.getElementById("speedLabel").textContent = CODE_STEP_MS + "ms";
+});
+
+document.querySelectorAll(".pill").forEach(p => {
+  p.addEventListener("click", () => {
+    if (parseInt(p.dataset.n, 10) === numDisks) return;
+    numDisks = parseInt(p.dataset.n, 10);
+    if (manualMode) setManualUI(false);
+    startPuzzle();
+  });
+});
+
+const modalBackdrop = document.getElementById("modalBackdrop");
+const diskInput = document.getElementById("diskInput");
+const modalError = document.getElementById("modalError");
+
+restartBtn.addEventListener("click", () => {
+  diskInput.value = numDisks;
+  modalError.textContent = "";
+  modalBackdrop.classList.add("open");
+  diskInput.focus();
+});
+
+document.getElementById("modalCancel").addEventListener("click", () => {
+  modalBackdrop.classList.remove("open");
+});
+
+document.getElementById("modalOk").addEventListener("click", () => {
+  const v = parseInt(diskInput.value, 10);
+
+  if (v === 64) {
+    numDisks = 8;
+    modalBackdrop.classList.remove("open");
+    if (manualMode) setManualUI(false);
+    startPuzzle();
+    moveTextEl.textContent = "64 disks = 585 billion years. The priests have settled on 8.";
+    return;
+  }
+
+  if (!Number.isInteger(v) || v < 3 || v > 8) {
+    modalError.textContent = "Enter a number from 3 to 8.";
+    return;
+  }
+  numDisks = v;
+  modalBackdrop.classList.remove("open");
+  if (manualMode) setManualUI(false);
+  startPuzzle();
+});
+
+diskInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") document.getElementById("modalOk").click();
+});
+
+const DESIGN_W = 1000, DESIGN_H = 340;
+
+function updateStageScale() {
+  /* Measure available space from the PARENT, not stageOuter itself —
+     once stageOuter's own width is set below, using its own clientWidth
+     here would shrink a little more on every resize call. */
+  const containerWidth = stageOuter.parentElement.clientWidth || DESIGN_W;
+
+  /* Scale to fit EXACTLY — no minimum clamp, no scrolling. The scaled
+     .stage is always exactly as wide as stageOuter, so both width and
+     height shrink together with the container, and nothing overflows. */
+  const scale = containerWidth / DESIGN_W;
+
+  stage.style.transform = `scale(${scale})`;
+  stage.style.left = "0px";
+
+  stageOuter.style.width = containerWidth + "px";
+  stageOuter.style.height = (DESIGN_H * scale) + "px";
+}
+
+window.addEventListener("resize", () => {
+  clearTimeout(window._resizeT);
+  window._resizeT = setTimeout(updateStageScale, 100);
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  buildStaticStage();
+  buildCodePanel();
+  updateStageScale();
+  startPuzzle();
+});
+</script>
+</body>
+</html>

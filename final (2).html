@@ -275,7 +275,7 @@
     position: relative;
     width: 100%;
     max-width: 1000px;
-    height: 340px;         /* fallback before JS runs; JS controls this dynamically */
+    height: 340px;         
     min-height: 0;
     overflow: hidden;
     box-sizing: border-box;
@@ -308,7 +308,7 @@
   .rod-line {
     position: absolute;
     bottom: 33px;
-    width: 4px;            /* even width — keeps the -50% center on a whole pixel at any scale */
+    width: 4px;            
     height: 257px;
     background: linear-gradient(90deg, #ffffff, #8ecae6 45%, #4a90b8);
     border-radius: 2px;
@@ -1268,14 +1268,7 @@ diskInput.addEventListener("keydown", (e) => {
 const DESIGN_W = 1000, DESIGN_H = 340;
 
 function updateStageScale() {
-  /* Measure available space from the PARENT, not stageOuter itself —
-     once stageOuter's own width is set below, using its own clientWidth
-     here would shrink a little more on every resize call. */
   const containerWidth = stageOuter.parentElement.clientWidth || DESIGN_W;
-
-  /* Scale to fit EXACTLY — no minimum clamp, no scrolling. The scaled
-     .stage is always exactly as wide as stageOuter, so both width and
-     height shrink together with the container, and nothing overflows. */
   const scale = containerWidth / DESIGN_W;
 
   stage.style.transform = `scale(${scale})`;
